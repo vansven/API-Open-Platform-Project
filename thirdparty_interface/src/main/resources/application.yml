@@ -1,0 +1,8 @@
+server:
+  port: 8329
+#neu:
+#  vansven:
+#    client:
+#      publickey: "aaaaaa"
+#      privatekey: "qwertyuiop"
+
