@@ -18,4 +18,9 @@ public class Person{
         this.age = age;
         this.gender = gender;
     }
+
+//    @Override
+//    public String toString(){
+//        return "Person:{ " + name + " "  + age + " " + gender + " " +  " }";
+//    }
 }

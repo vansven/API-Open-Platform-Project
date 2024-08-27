@@ -1,0 +1,16 @@
+server:
+  port: 8081
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: path_route
+          uri: http://localhost:8329
+          predicates:
+            - Path=/test/**
+  application:
+    name: demo_gateway
+logging:
+  level:
+    root: debug

@@ -2,12 +2,12 @@ package com.vansven.api.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.vansven.api.controller.exception.BusinessException;
-import com.vansven.api.domain.UserInfo;
-import com.vansven.api.constant.StatusCode;
 import com.vansven.api.constant.GlobalConstant;
-import com.vansven.api.vo.userInfo.LoginQuery;
-import com.vansven.api.vo.userInfo.RegisterQuery;
+import com.vansven.api.constant.StatusCode;
+import com.vansven.api.controller.exception.BusinessException;
+import com.vansven.api.domain.entity.UserInfo;
+import com.vansven.api.domain.vo.userInfo.LoginRequest;
+import com.vansven.api.domain.vo.userInfo.RegisterRequest;
 import com.vansven.api.mapper.UserInfoMapper;
 import com.vansven.api.service.UserInfoService;
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +31,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo>
     @Autowired
     UserInfoMapper userInfoMapper;
 
-    public boolean validRegisterParams(RegisterQuery registerQuery) throws BusinessException {
+    public boolean validRegisterParams(RegisterRequest registerQuery) throws BusinessException {
          String userAccount = registerQuery.getUserAccount();
          String userPassword = registerQuery.getUserPassword();
         //1、校验
@@ -59,7 +59,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoMapper, UserInfo>
         return true;
     }
 
-    public UserInfo validLoginParams(LoginQuery loginQuery) throws BusinessException {
+    public UserInfo validLoginParams(LoginRequest loginQuery) throws BusinessException {
          String userAccount = loginQuery.getUserAccount();
          String userPassword = loginQuery.getUserPassword();
         //1、初步校验参数

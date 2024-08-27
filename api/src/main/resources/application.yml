@@ -44,7 +44,10 @@ neu:
     client:
       publickey: aaaa
       privatekey: vansvenfan
+
 server:
   servlet:
     session:
-      timeout: 10
+      timeout: 3600
+    context-path: /vansven
+  port: 8080

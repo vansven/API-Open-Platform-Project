@@ -1,6 +1,6 @@
 package com.vansven.api.service;
 
-import com.vansven.api.domain.UserInfo;
+import com.vansven.api.domain.entity.UserInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

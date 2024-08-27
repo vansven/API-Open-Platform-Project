@@ -26,7 +26,8 @@ public class ThirdInterface {
         String sign = request.getHeader("sign");
 
         // 根据第三方中找对应的私钥验证签名 根据相同的参数进行摘要算法对比前端传来的sign签名
-        String authorSign = SignUtil.genSign(requestQuery.toString(), "vansvenfan");
+        String enc = nonce + timestamp + requestQuery.toString() + publickey;
+        String authorSign = SignUtil.genSign(enc, "vansven");
         if(!sign.equals(authorSign)){
             throw new RuntimeException("签名认证不通过，无权限访问该资源");
         }

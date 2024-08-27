@@ -8,13 +8,13 @@ import com.vansven.api.constant.GlobalConstant;
 import com.vansven.api.constant.StatusCode;
 import com.vansven.api.controller.exception.BusinessException;
 import com.vansven.api.controller.exception.SystemException;
-import com.vansven.api.domain.InterfaceInfo;
-import com.vansven.api.domain.UserInfo;
+import com.vansven.api.domain.entity.InterfaceInfo;
+import com.vansven.api.domain.entity.UserInfo;
 import com.vansven.api.mapper.InterfaceInfoMapper;
 import com.vansven.api.service.InterfaceInfoService;
-import com.vansven.api.vo.interfaceinfo.CreateInterRequest;
-import com.vansven.api.vo.interfaceinfo.PageQueryInterRequest;
-import com.vansven.api.vo.interfaceinfo.UpdateInterRequest;
+import com.vansven.api.domain.vo.interfaceinfo.CreateInterRequest;
+import com.vansven.api.domain.vo.interfaceinfo.PageQueryInterRequest;
+import com.vansven.api.domain.vo.interfaceinfo.UpdateInterRequest;
 import neu.vansven.apiclientsdk.domain.Person;
 import neu.vansven.apiclientsdk.service.ClientService;
 import org.apache.commons.lang3.StringUtils;
@@ -67,7 +67,7 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
         InterfaceInfo newInter = new InterfaceInfo();
         BeanUtils.copyProperties(createInter, newInter);
         UserInfo userLogin = (UserInfo) request.getSession().getAttribute(GlobalConstant.LOGIN_USER);
-        newInter.setUserid(userLogin.getId());
+        newInter.setUserId(userLogin.getId());
         boolean save = this.save(newInter);
         if(!save){
             throw new SystemException(StatusCode.SYSTEM_ERROR,"接口信息插入数据库失败");
@@ -129,7 +129,7 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
         }
         // 仅管理员或本人可删除
         UserInfo userLogin = (UserInfo) request.getSession().getAttribute(GlobalConstant.LOGIN_USER);
-        if(!userLogin.getId().equals(inter.getUserid()) && !userInfoService.isAdmin(userLogin)){
+        if(!userLogin.getId().equals(inter.getUserId()) && !userInfoService.isAdmin(userLogin)){
             throw new BusinessException(StatusCode.NO_AUTHOR_ERROR,"无权限删除接口信息");
         }
         boolean removed = this.removeById(id);
@@ -152,7 +152,7 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
         }
         // 仅管理员或本人可修改
         UserInfo userLogin = (UserInfo) request.getSession().getAttribute(GlobalConstant.LOGIN_USER);
-        if(!userLogin.getId().equals(inter.getUserid()) && !userInfoService.isAdmin(userLogin)){
+        if(!userLogin.getId().equals(inter.getUserId()) && !userInfoService.isAdmin(userLogin)){
             throw new BusinessException(StatusCode.NO_AUTHOR_ERROR,"无权限更新接口信息");
         }
         InterfaceInfo newInter = new InterfaceInfo();
@@ -176,7 +176,7 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
         }
         //只有管理员或者接口本人才能上线
         UserInfo userLogin = (UserInfo) request.getSession().getAttribute(GlobalConstant.LOGIN_USER);
-        if(!userInfoService.isAdmin(userLogin) && userLogin.getId() != inter.getUserid()){
+        if(!userInfoService.isAdmin(userLogin) && userLogin.getId() != inter.getUserId()){
             throw new BusinessException(StatusCode.NO_AUTHOR_ERROR,"无权限下线接口");
         }
         InterfaceInfo updateInter = new InterfaceInfo();
@@ -201,10 +201,10 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
         }
         //只有管理员或者接口本人才能上线
         UserInfo userLogin = (UserInfo) request.getSession().getAttribute(GlobalConstant.LOGIN_USER);
-        if(!userInfoService.isAdmin(userLogin) && userLogin.getId() != inter.getUserid()){
+        if(!userInfoService.isAdmin(userLogin) && userLogin.getId() != inter.getUserId()){
             throw new BusinessException(StatusCode.NO_AUTHOR_ERROR,"无权限上线接口");
         }
-        //todo 验证接口能不能正常使用，这里写死了待完善,验证的时候使用配置里面的公钥和私钥
+        //todo 验证接口能不能正常使用，这里写死了待完善,验证的时候使用yml配置里面的公钥和私钥
         Person person = new Person();
         ResponseEntity<Person> responseEntity = clientService.getEntityByPost(person);
         if(responseEntity.getStatusCodeValue() != StatusCode.SUCCESS){
@@ -232,7 +232,7 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
         }
         //只有管理员或者接口本人才能上线
         UserInfo userLogin = (UserInfo) request.getSession().getAttribute(GlobalConstant.LOGIN_USER);
-        if(!userInfoService.isAdmin(userLogin) && userLogin.getId() != inter.getUserid()){
+        if(!userInfoService.isAdmin(userLogin) && userLogin.getId() != inter.getUserId()){
             throw new BusinessException(StatusCode.NO_AUTHOR_ERROR,"无权限上线接口");
         }
         //todo 验证接口能不能正常使用，这里写死了待完善

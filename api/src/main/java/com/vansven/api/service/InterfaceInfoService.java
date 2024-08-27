@@ -1,10 +1,10 @@
 package com.vansven.api.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.vansven.api.domain.InterfaceInfo;
-import com.vansven.api.vo.interfaceinfo.CreateInterRequest;
-import com.vansven.api.vo.interfaceinfo.PageQueryInterRequest;
-import com.vansven.api.vo.interfaceinfo.UpdateInterRequest;
+import com.vansven.api.domain.entity.InterfaceInfo;
+import com.vansven.api.domain.vo.interfaceinfo.CreateInterRequest;
+import com.vansven.api.domain.vo.interfaceinfo.PageQueryInterRequest;
+import com.vansven.api.domain.vo.interfaceinfo.UpdateInterRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
