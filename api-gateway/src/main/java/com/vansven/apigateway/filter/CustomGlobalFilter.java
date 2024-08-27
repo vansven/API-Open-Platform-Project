@@ -2,20 +2,27 @@ package com.vansven.apigateway.filter;
 
 import lombok.extern.slf4j.Slf4j;
 import neu.vansven.apiclientsdk.utils.SignUtil;
+import org.reactivestreams.Publisher;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -63,23 +70,58 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
             throw new RuntimeException("签名认证不通过，无权限访问该资源");
         }
         //- 5、请求的模拟接口是否存在，从数据库中查询模拟的接口是否存在，以及请求方法是否匹配（还可以校验请求参数）
-        //- 6、请求转发，调用模拟接口，注意这里的 chain.filter 是异步回调方法，会先执行下面的代码
-         Mono<Void> filter = chain.filter(exchange);
-        //- 7、响应日志
-        ServerHttpResponse response = exchange.getResponse();
-        HttpStatus responseStatusCode = response.getStatusCode();
-        if(responseStatusCode == HttpStatus.OK){
-            //-8、 todo 调用成功，接口调用次数
-        }else{
-            //-9、 调用失败，返回一个规范的错误码
-            response.setStatusCode(HttpStatus.NON_AUTHORITATIVE_INFORMATION);
-            return  response.setComplete();
-        }
-        return filter;
+        log.info("调用转发接口前");
+        //- 6、处理响应数据
+        return handleResponse(exchange,chain);
+        //- 调用成功，接口调用次数
+        //- 响应日志
+        //- 调用失败，返回一个规范的错误码
+    }
+
+    /**
+     * 处理响应数据
+     * @param exchange
+     * @param chain
+     * @return
+     */
+    public Mono<Void> handleResponse(ServerWebExchange exchange, GatewayFilterChain chain) {
+        //获取response的返回数据
+        ServerHttpResponse originalResponse = exchange.getResponse();
+        DataBufferFactory bufferFactory = originalResponse.bufferFactory();
+        ServerHttpResponseDecorator decoratedResponse = new ServerHttpResponseDecorator(originalResponse) {
+            @Override
+            public Mono<Void> writeWith(Publisher<? extends DataBuffer> body) {
+                log.info("调用完转发接口后执行的代码");
+                if (getStatusCode().equals(HttpStatus.OK) && body instanceof Flux) {
+                    Flux<? extends DataBuffer> fluxBody = Flux.from(body);
+                    return super.writeWith(fluxBody.map(dataBuffer -> {
+                        byte[] content = new byte[dataBuffer.readableByteCount()];
+                        dataBuffer.read(content);
+                        //释放掉内存
+                        DataBufferUtils.release(dataBuffer);
+                        //responseData就是下游系统返回的内容,可以查看修改
+                        String responseData = new String(content, Charset.forName("UTF-8"));
+                        // - 7、调用成功，更新调用接口次数 todo
+                        // - 8、响应日志
+                        log.info("***********************************响应信息**********************************");
+                        log.info("响应内容:{}", responseData);
+                        log.info("****************************************************************************\n");
+                        return bufferFactory.wrap(responseData.getBytes());
+                    }));
+                } else {
+                    log.error("响应code异常:{}", getStatusCode());
+                    //- 9、直接设置错误状态码，标记完成返回
+                    setStatusCode(HttpStatus.NOT_ACCEPTABLE);
+                    return setComplete();
+                }
+            }
+        };
+        log.info("开始调用转发接口");
+        return chain.filter(exchange.mutate().response(decoratedResponse).build());// 设置 response 对象为装饰过的 decoratedResponse
     }
 
     @Override
     public int getOrder() {
-        return 0;
+        return -2;
     }
 }
