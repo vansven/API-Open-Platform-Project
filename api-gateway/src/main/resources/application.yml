@@ -6,11 +6,20 @@ spring:
     gateway:
       routes:
         - id: path_route
-          uri: http://localhost:8329
+          uri: http://127.0.0.1:8329
           predicates:
             - Path=/test/**
   application:
-    name: demo_gateway
+    name: api_gateway
 logging:
   level:
     root: debug
+
+dubbo:
+  application:
+    name: dubbo_provider
+  protocol:
+    name: dubbo
+    port: 20880
+  registry:
+    address: nacos://192.168.150.1:8848?username=nacos&password=nacos

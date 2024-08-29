@@ -6,12 +6,12 @@ import com.vansven.api.constant.StatusCode;
 import com.vansven.api.controller.exception.BusinessException;
 import com.vansven.api.controller.exception.SystemException;
 import com.vansven.api.domain.dto.BaseResponse;
-import com.vansven.api.domain.entity.UserInfo;
 import com.vansven.api.domain.vo.userInfo.LoginRequest;
 import com.vansven.api.domain.vo.userInfo.RegisterRequest;
 import com.vansven.api.service.impl.UserInfoServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import neu.vansven.entity.UserInfo;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -28,6 +28,8 @@ import java.util.UUID;
 public class UserController {
     @Autowired
     UserInfoServiceImpl userInfoService;
+
+
 
     /**
      * 注册用户信息
@@ -53,7 +55,7 @@ public class UserController {
         if(!save){
             throw new SystemException(StatusCode.SYSTEM_ERROR,"数据库插入失败");
         }
-        return new BaseResponse<Boolean>(StatusCode.SUCCESS,"正常响应");
+        return new BaseResponse<Boolean>(StatusCode.SUCCESS,"正常响应",true);
     }
 
     /**
@@ -71,6 +73,7 @@ public class UserController {
         if(StringUtils.isAnyEmpty(userAccount,userPassword)){
             throw new BusinessException(StatusCode.PARAMATER_ERROR,"账号密码非空");
         }
+
         UserInfo userLogin = userInfoService.validLoginParams(loginQuery);
         request.getSession().setAttribute(GlobalConstant.LOGIN_USER,userLogin);
         return new BaseResponse<UserInfo>(StatusCode.SUCCESS,"登录成功", userLogin);

@@ -8,15 +8,17 @@ import com.vansven.api.constant.GlobalConstant;
 import com.vansven.api.constant.StatusCode;
 import com.vansven.api.controller.exception.BusinessException;
 import com.vansven.api.controller.exception.SystemException;
-import com.vansven.api.domain.entity.InterfaceInfo;
-import com.vansven.api.domain.entity.UserInfo;
-import com.vansven.api.mapper.InterfaceInfoMapper;
-import com.vansven.api.service.InterfaceInfoService;
 import com.vansven.api.domain.vo.interfaceinfo.CreateInterRequest;
 import com.vansven.api.domain.vo.interfaceinfo.PageQueryInterRequest;
 import com.vansven.api.domain.vo.interfaceinfo.UpdateInterRequest;
+import com.vansven.api.domain.vo.userinterfacerinfo.AddUserInterfaceRequest;
+import com.vansven.api.mapper.InterfaceInfoMapper;
+import com.vansven.api.service.InterfaceInfoService;
+import com.vansven.api.service.UserInterfaceInfoService;
 import neu.vansven.apiclientsdk.domain.Person;
 import neu.vansven.apiclientsdk.service.ClientService;
+import neu.vansven.entity.InterfaceInfo;
+import neu.vansven.entity.UserInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,13 +37,17 @@ import java.util.List;
 public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, InterfaceInfo>
     implements InterfaceInfoService{
     @Autowired
-    InterfaceInfoMapper infoMapper;
+    InterfaceInfoMapper interfaceInfoMapper;
 
     @Autowired
     UserInfoServiceImpl userInfoService;
 
     @Autowired
+    UserInterfaceInfoService userInterfaceInfoService;
+
+    @Autowired
     ClientService clientService;
+
 
     @Override
     public boolean createInter(CreateInterRequest createInter, HttpServletRequest request) {
@@ -60,7 +66,7 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
         }
         QueryWrapper<InterfaceInfo> wrapper = new QueryWrapper<>();
         wrapper.eq("name",name);
-        Long count = infoMapper.selectCount(wrapper);
+        Long count = interfaceInfoMapper.selectCount(wrapper);
         if(count != 0){
             throw new BusinessException(StatusCode.PARAMATER_ERROR,"不能重复添加相同名称的接口信息");
         }
@@ -83,6 +89,18 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
         }
         if(id <= 0){
             throw new BusinessException(StatusCode.PARAMATER_ERROR,"输入的id值不正确");
+        }
+        // 默认初始化用户调用接口次数
+        List<InterfaceInfo> list = this.list();
+        UserInfo userInfo = (UserInfo) request.getSession().getAttribute(GlobalConstant.LOGIN_USER);
+        if(list != null){
+            for(InterfaceInfo element:list){
+                AddUserInterfaceRequest addRelation = new AddUserInterfaceRequest();
+                addRelation.setUserId(userInfo.getId());
+                addRelation.setInterfaceId(id);
+                addRelation.setLeftNum(10);
+                userInterfaceInfoService.addInfo(addRelation,request);
+            }
         }
         InterfaceInfo inter = this.getById(id);
         if(inter == null){
@@ -108,7 +126,7 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
         QueryWrapper<InterfaceInfo> wrapper = new QueryWrapper<>();
         wrapper.like(StringUtils.isNotBlank(name),"name", name); // 模糊查询
         wrapper.orderBy(StringUtils.isNotBlank(sortedFiled), false, sortedFiled); // 排序输出
-        List<InterfaceInfo> records = infoMapper.selectPage(infoPage, wrapper).getRecords();
+        List<InterfaceInfo> records = interfaceInfoMapper.selectPage(infoPage, wrapper).getRecords();
         if(records == null){
             throw new BusinessException(StatusCode.SYSTEM_ERROR, "数据库分页查询失败");
         }
@@ -146,7 +164,7 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
         }
         //是否存在
         Long id = updateInter.getId();
-        InterfaceInfo inter = infoMapper.selectById(id); // 原本的接口信息
+        InterfaceInfo inter = interfaceInfoMapper.selectById(id); // 原本的接口信息
         if(inter == null){
             throw new BusinessException(StatusCode.PARAMATER_ERROR,"接口不存在");
         }

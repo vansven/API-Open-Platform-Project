@@ -1,7 +1,7 @@
 package com.vansven.api.mapper;
 
-import com.vansven.api.domain.entity.InterfaceInfo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import neu.vansven.entity.InterfaceInfo;
 import org.apache.ibatis.annotations.Mapper;
 
 /**

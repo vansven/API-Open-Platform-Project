@@ -51,3 +51,12 @@ server:
       timeout: 3600
     context-path: /vansven
   port: 8080
+
+dubbo:
+  application:
+    name: dubbo_provider
+  protocol:
+    name: dubbo
+    port: 20880
+  registry:
+    address: nacos://192.168.150.1:8848?username=nacos&password=nacos

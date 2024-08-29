@@ -7,8 +7,10 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -22,7 +24,7 @@ public class ClientService {
     private RestTemplateConfigure configure = new RestTemplateConfigure();
     private RestTemplate restTemplate = configure.getRestTemplate();
 
-    private final static String REMOTEADDRESS = "Http://localhost:8081";
+    private final static String GATEWAYADDRESS = "Http://localhost:8081";
 
     /**
      * api接口鉴权思想：
@@ -38,12 +40,33 @@ public class ClientService {
     }
 
     public ResponseEntity<String> getNameByGet(String name){
-        String url = REMOTEADDRESS + "/test/api1";
+        String url = GATEWAYADDRESS + "/test/api1";
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
         LinkedMultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("name",name);
-        URI buildURI = builder.queryParams(map).build().encode().toUri(); // 拼接url（路径 + 参数）后需要编码
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(buildURI, String.class);
+        // 拼接url（路径 + 参数）后需要编码
+        URI buildURI = builder.queryParams(map).build().encode().toUri();
+        //请求头
+        HttpHeaders httpHeaders = new HttpHeaders();
+        String nonce = RandomStringUtils.randomNumeric(10);
+        httpHeaders.add("nonce", nonce);
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        httpHeaders.add("timestamp", timestamp);
+        String requestParams = name;
+        try {
+            httpHeaders.add("requestParams", URLEncoder.encode(requestParams, "UTF-8") );
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("utf-8编码字符串错误");
+        }
+        if(StringUtils.isAnyBlank(privateKey,publicKey)){
+            throw new RuntimeException("POST请求必须输入一对密钥进行前后端签名认证");
+        }
+        httpHeaders.add("publickey",publicKey);
+        String salt = nonce + timestamp + requestParams + publicKey;
+        httpHeaders.add("sign", SignUtil.genSign(salt, privateKey));
+        //封装请求头
+        HttpEntity<MultiValueMap<String, Object>> httpEntity = new HttpEntity<>(httpHeaders);
+        ResponseEntity<String> responseEntity = restTemplate.exchange(buildURI, HttpMethod.GET,httpEntity,String.class);
         System.out.println("状态码 --> " + responseEntity.getStatusCode());
         System.out.println("请求头 --> " + responseEntity.getHeaders());
         System.out.println("响应数据 --> " + responseEntity.getBody());
@@ -52,16 +75,16 @@ public class ClientService {
 
     public ResponseEntity<Person> getEntityByPost(Person requestBody){
         restTemplate = new RestTemplate();
-        String url = REMOTEADDRESS + "/test/api2";
+        String url = GATEWAYADDRESS + "/test/api2";
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Content-Type", "application/json");
         String nonce = RandomStringUtils.randomNumeric(10);
         httpHeaders.add("nonce", nonce);
         String timestamp = String.valueOf(System.currentTimeMillis());
         httpHeaders.add("timestamp", timestamp);
-        String body = requestBody.toString();
+        String requestParams = requestBody.toString();
         try {
-            httpHeaders.add("body", URLEncoder.encode(body, "UTF-8") );
+            httpHeaders.add("requestParams", URLEncoder.encode(requestParams, "UTF-8") );
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("utf-8编码字符串错误");
         }
@@ -69,7 +92,7 @@ public class ClientService {
             throw new RuntimeException("POST请求必须输入一对密钥进行前后端签名认证");
         }
         httpHeaders.add("publickey",publicKey);
-        String salt = nonce + timestamp + body + publicKey;
+        String salt = nonce + timestamp + requestParams + publicKey;
         httpHeaders.add("sign", SignUtil.genSign(salt, privateKey));
         // 构造请求报文 请求头 + 请求体
         HttpEntity<Person> httpEntity = new HttpEntity<>(requestBody,httpHeaders);

@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vansven.api.constant.GlobalConstant;
 import com.vansven.api.constant.StatusCode;
 import com.vansven.api.controller.exception.BusinessException;
-import com.vansven.api.domain.entity.UserInfo;
 import com.vansven.api.domain.entity.UserInterfaceInfo;
 import com.vansven.api.domain.vo.userinterfacerinfo.AddUserInterfaceRequest;
 import com.vansven.api.domain.vo.userinterfacerinfo.GetUserInterfaceInfoByPageRequest;
@@ -15,6 +14,7 @@ import com.vansven.api.domain.vo.userinterfacerinfo.UpdateUserInterfaceRequest;
 import com.vansven.api.enums.UserInterfaceEnum;
 import com.vansven.api.mapper.UserInterfaceInfoMapper;
 import com.vansven.api.service.UserInterfaceInfoService;
+import neu.vansven.entity.UserInfo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 

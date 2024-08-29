@@ -1,7 +1,7 @@
 package com.vansven.api.service;
 
-import com.vansven.api.domain.entity.UserInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
+import neu.vansven.entity.UserInfo;
 
 /**
 * @author vansven

@@ -4,13 +4,13 @@ import com.vansven.api.constant.GlobalConstant;
 import com.vansven.api.constant.StatusCode;
 import com.vansven.api.controller.exception.BusinessException;
 import com.vansven.api.domain.dto.BaseResponse;
-import com.vansven.api.domain.entity.InterfaceInfo;
 import com.vansven.api.domain.vo.interfaceinfo.*;
 import com.vansven.api.service.impl.InterfaceInfoServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import neu.vansven.apiclientsdk.domain.Person;
 import neu.vansven.apiclientsdk.service.ClientService;
+import neu.vansven.entity.InterfaceInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,10 +26,6 @@ public class InterfaceController {
 
     @Resource
     InterfaceInfoServiceImpl interServiceImpl;
-
-    @Resource
-    ClientService clientService;
-
 
     /**
      * 创建接口信息
@@ -189,6 +185,12 @@ public class InterfaceController {
             throw new BusinessException(StatusCode.SYSTEM_ERROR,"接口暂时无法对外开放");
         }
         String requestParams = invokeGetRequest.getName();
+        String publicKey = invokeGetRequest.getPublicKey();
+        String privateKey = invokeGetRequest.getPrivateKey();
+        if(StringUtils.isAnyBlank(publicKey,privateKey)){
+            throw new BusinessException(StatusCode.PARAMATER_ERROR,"请输入密钥对");
+        }
+        ClientService clientService = new ClientService(publicKey, privateKey);
         ResponseEntity<String> responseEntity = clientService.getNameByGet(requestParams); // 调用api接口1
         if(responseEntity.getStatusCodeValue() != StatusCode.SUCCESS){
             throw new BusinessException(StatusCode.SYSTEM_ERROR,"调用接口失败");
