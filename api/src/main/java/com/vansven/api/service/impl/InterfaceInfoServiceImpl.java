@@ -8,6 +8,7 @@ import com.vansven.api.constant.GlobalConstant;
 import com.vansven.api.constant.StatusCode;
 import com.vansven.api.controller.exception.BusinessException;
 import com.vansven.api.controller.exception.SystemException;
+import com.vansven.api.domain.entity.UserInterfaceInfo;
 import com.vansven.api.domain.vo.interfaceinfo.CreateInterRequest;
 import com.vansven.api.domain.vo.interfaceinfo.PageQueryInterRequest;
 import com.vansven.api.domain.vo.interfaceinfo.UpdateInterRequest;
@@ -91,16 +92,17 @@ public class InterfaceInfoServiceImpl extends ServiceImpl<InterfaceInfoMapper, I
             throw new BusinessException(StatusCode.PARAMATER_ERROR,"输入的id值不正确");
         }
         // 默认初始化用户调用接口次数
-        List<InterfaceInfo> list = this.list();
+        QueryWrapper<UserInterfaceInfo> queryWrapper = new QueryWrapper<>();
         UserInfo userInfo = (UserInfo) request.getSession().getAttribute(GlobalConstant.LOGIN_USER);
-        if(list != null){
-            for(InterfaceInfo element:list){
-                AddUserInterfaceRequest addRelation = new AddUserInterfaceRequest();
-                addRelation.setUserId(userInfo.getId());
-                addRelation.setInterfaceId(id);
-                addRelation.setLeftNum(10);
-                userInterfaceInfoService.addInfo(addRelation,request);
-            }
+        queryWrapper.eq("user_id", userInfo.getId());
+        queryWrapper.eq("interface_id",id);
+        UserInterfaceInfo userInterfaceInfo = userInterfaceInfoService.getOne(queryWrapper);
+        if(userInterfaceInfo == null){
+            AddUserInterfaceRequest addRelation = new AddUserInterfaceRequest();
+            addRelation.setUserId(userInfo.getId());
+            addRelation.setInterfaceId(id);
+            addRelation.setLeftNum(10);
+            userInterfaceInfoService.addInfo(addRelation,request);
         }
         InterfaceInfo inter = this.getById(id);
         if(inter == null){
