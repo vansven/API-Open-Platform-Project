@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.vansven.api.mapper.UserInterfaceInfoMapper">
+
+    <select id="getAllInvokeNumber" resultType="com.vansven.api.domain.dto.InterfaceCountStatistic">
+        select
+            interface_id as interfaceId,
+            SUM(total_num) as interfaceCountSum
+        from user_interface_info
+        group by interface_id
+        order by interfaceCountSum asc limit #{n};
+    </select>
+</mapper>

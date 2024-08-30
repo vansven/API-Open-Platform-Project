@@ -2,7 +2,11 @@ package com.vansven.api.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.vansven.api.domain.entity.UserInterfaceInfo;
+import com.vansven.api.domain.dto.InterfaceCountStatistic;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
 * @author vansven
@@ -13,6 +17,7 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface UserInterfaceInfoMapper extends BaseMapper<UserInterfaceInfo> {
 
+    List<InterfaceCountStatistic> getAllInvokeNumber(@Param("n") Integer n);
 }
 
 

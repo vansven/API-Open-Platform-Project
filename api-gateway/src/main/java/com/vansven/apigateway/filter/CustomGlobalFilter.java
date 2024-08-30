@@ -15,6 +15,8 @@ import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,11 +29,15 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.Resource;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Slf4j
@@ -45,6 +51,9 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 
     @DubboReference
     private UserInterfaceRegisterService userInterfaceRegisterService;
+
+    @Resource
+    private RedisTemplate<String,Long> redisTemplate;
 
     private final static List<String> BLACK_LIST = Arrays.asList("127.162.72.1");
 
@@ -109,7 +118,20 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
         //- 响应日志
         //- 调用失败，返回一个规范的错误码
         log.info("调用转发接口前");
-        return handleResponse(exchange,chain,userInfo.getId(),interfaceInfo.getId());
+        //- add3、对单个用户当日接口调用次数进行限流验证
+        long userId = userInfo.getId();
+        long interfaceInfoId = interfaceInfo.getId();
+        ValueOperations<String, Long> opsForValue = redisTemplate.opsForValue();
+        String key = userId + "_" + interfaceInfoId + "_" + getDataOfToday();
+        Long numberToday = opsForValue.get(key);
+        if(numberToday != null && numberToday.compareTo(100l) == -1){
+            // 直接设置状态码，标记完成返回
+            log.error("接口当日调用次数已达上限，无法继续再调用");
+            ServerHttpResponse response = exchange.getResponse();
+            response.setStatusCode(HttpStatus.FORBIDDEN);
+            return response.setComplete();
+        }
+        return handleResponse(exchange,chain,userId,interfaceInfoId);
 
     }
 
@@ -145,6 +167,22 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
                         } catch (Exception e) {
                             log.error("查询用户接口关系信息错误");
                         }
+                        // - add1、统计接口调用总次数，
+                        ValueOperations<String, Long> opsForValue = redisTemplate.opsForValue();
+                        String key = String.valueOf(interfaceInfoId);
+                        if(opsForValue.get(key).equals(0l)){
+                            opsForValue.increment(key);
+                        }else{
+                            opsForValue.set(key,1l);
+                        }
+                        //- add2、监控一天内单个用户对接口调用的次数
+                        String userLimitKey = userId + "_" + interfaceInfoId + "_" + getDataOfToday();
+                        if(opsForValue.get(userLimitKey).equals(0l)) {
+                            opsForValue.set(userLimitKey, 1l, 1l, TimeUnit.DAYS);
+                        }else {
+                            opsForValue.increment(userLimitKey);
+                        }
+
                         // - 9、响应日志
                         log.info("***********************************响应信息**********************************");
                         log.info("响应内容:{}", responseData);
@@ -161,6 +199,11 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
         };
         log.info("开始调用转发接口");
         return chain.filter(exchange.mutate().response(decoratedResponse).build());// 设置 response 对象为装饰过的 decoratedResponse
+    }
+
+    private String getDataOfToday(){
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        return  dateFormat.format(new Date());
     }
 
     @Override

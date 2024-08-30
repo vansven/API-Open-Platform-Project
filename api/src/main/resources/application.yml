@@ -4,13 +4,13 @@ spring:
     username: root
     password: 150422
     url: jdbc:mysql://localhost:3306/api_project?serverTimezone=Asia/Shanghai
-#  redis:
-#    host: 192.168.62.128
-#    port: 6379
-#    database: 0
-#    password: 150422
-#  session:
-#    store-type: redis # redis存储session会话
+  redis:
+    host: 192.168.62.128
+    port: 6379
+    database: 1
+    password: 150422
+  session:
+    store-type: redis # redis存储session会话
   mybatis-plus:
     global-config:
       db-config:

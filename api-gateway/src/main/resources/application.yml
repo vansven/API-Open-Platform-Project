@@ -9,6 +9,11 @@ spring:
           uri: http://127.0.0.1:8329
           predicates:
             - Path=/test/**
+  redis:
+    host: 192.168.62.128
+    port: 6379
+    database: 1
+    password: 150422
   application:
     name: api_gateway
 logging:
