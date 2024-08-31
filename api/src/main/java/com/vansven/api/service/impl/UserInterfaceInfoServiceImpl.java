@@ -1,6 +1,5 @@
 package com.vansven.api.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.vansven.api.constant.GlobalConstant;
@@ -15,6 +14,7 @@ import com.vansven.api.enums.UserInterfaceEnum;
 import com.vansven.api.mapper.UserInterfaceInfoMapper;
 import com.vansven.api.service.UserInterfaceInfoService;
 import neu.vansven.entity.UserInfo;
+import neu.vansven.service.UserInterfaceRegisterService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +36,9 @@ public class UserInterfaceInfoServiceImpl extends ServiceImpl<UserInterfaceInfoM
 
     @Resource
     private UserInterfaceInfoMapper userInterfaceInfoMapper;
+
+    @Resource
+    private UserInterfaceRegisterService userInterfaceRegisterService;
 
     @Override
     public boolean addInfo(AddUserInterfaceRequest addUserInterfaceRequest, HttpServletRequest request) {
@@ -134,13 +137,7 @@ public class UserInterfaceInfoServiceImpl extends ServiceImpl<UserInterfaceInfoM
     public boolean interfaceCount(InterfaceCountRequest interfaceCountRequest) {
         Long userId = interfaceCountRequest.getUserId();
         Long interfaceId = interfaceCountRequest.getInterfaceId();
-        UpdateWrapper<UserInterfaceInfo> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq("user_id",userId);
-        updateWrapper.eq("interface_id",interfaceId);
-        // 接口调用成功后，总调用次数加1，剩余次数减1 todo 防止用户重复操作需要保证接口幂等性
-        updateWrapper.setSql("total_num = total_num + 1, left_num = left_num - 1");
-        int update = userInterfaceInfoMapper.update(null, updateWrapper);
-        return update > 0;
+        return userInterfaceRegisterService.invokeCount(userId, interfaceId);
     }
 
 }
