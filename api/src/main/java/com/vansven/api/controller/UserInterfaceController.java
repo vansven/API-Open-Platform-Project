@@ -5,7 +5,6 @@ import com.vansven.api.domain.dto.BaseResponse;
 import com.vansven.api.domain.entity.UserInterfaceInfo;
 import com.vansven.api.domain.vo.userinterfacerinfo.AddUserInterfaceRequest;
 import com.vansven.api.domain.vo.userinterfacerinfo.GetUserInterfaceInfoByPageRequest;
-import com.vansven.api.domain.vo.userinterfacerinfo.InterfaceCountRequest;
 import com.vansven.api.domain.vo.userinterfacerinfo.UpdateUserInterfaceRequest;
 import com.vansven.api.service.impl.UserInterfaceInfoServiceImpl;
 import io.swagger.annotations.Api;
@@ -89,17 +88,6 @@ public class UserInterfaceController {
 
 
      //endregion
-
-    // region 用户调用接口后操作接口
-
-    @PostMapping("/invokeInterface")
-    @ApiOperation(value = "用户掉用接口次数统计更新")
-    public BaseResponse<Boolean> interfaceCount(InterfaceCountRequest interfaceCountRequest){
-        boolean updateCount = userInterfaceInfoService.interfaceCount(interfaceCountRequest);
-        return new BaseResponse<Boolean>(StatusCode.SUCCESS,"接口统计调用次数更新成功");
-    }
-
-    //endregion
 
 
 }

@@ -133,13 +133,6 @@ public class UserInterfaceInfoServiceImpl extends ServiceImpl<UserInterfaceInfoM
         return records;
     }
 
-    @Override
-    public boolean interfaceCount(InterfaceCountRequest interfaceCountRequest) {
-        Long userId = interfaceCountRequest.getUserId();
-        Long interfaceId = interfaceCountRequest.getInterfaceId();
-        return userInterfaceRegisterService.invokeCount(userId, interfaceId);
-    }
-
 }
 
 

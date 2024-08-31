@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.vansven.api.domain.entity.UserInterfaceInfo;
 import com.vansven.api.domain.vo.userinterfacerinfo.AddUserInterfaceRequest;
 import com.vansven.api.domain.vo.userinterfacerinfo.GetUserInterfaceInfoByPageRequest;
-import com.vansven.api.domain.vo.userinterfacerinfo.InterfaceCountRequest;
 import com.vansven.api.domain.vo.userinterfacerinfo.UpdateUserInterfaceRequest;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,5 +26,4 @@ public interface UserInterfaceInfoService extends IService<UserInterfaceInfo> {
 
     List<UserInterfaceInfo> getByPage(GetUserInterfaceInfoByPageRequest getUserInterfaceInfoByPageRequest, HttpServletRequest request);
 
-    boolean interfaceCount(InterfaceCountRequest interfaceCountRequest);
 }
